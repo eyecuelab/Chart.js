@@ -68,6 +68,9 @@
 			// Boolean - If we want to override with a hard coded scale
 			scaleOverride: false,
 
+			// Boolean or a positive integer denoting number of labels to be shown on x axis
+			showXLabels: true,
+
 			// ** Required if scaleOverride is true **
 			// Number - The number of steps in a hard coded scale
 			scaleSteps: null,
@@ -1660,7 +1663,10 @@
 					ctx.closePath();
 
 				},this);
-
+				
+				// if showXLabels is a number then divide and determine how many xLabels to skip before showing next label
+				// else, if showXLabels is true, print all labels, else never print
+				this.xLabelsSkipper = isNumber(this.showXLabels) ? Math.ceil(this.xLabels.length/this.showXLabels) : (this.showXLabels === true) ? 1 : this.xLabels.length+1;
 				each(this.xLabels,function(label,index){
 					var xPos = this.calculateX(index) + aliasPixel(this.lineWidth),
 						// Check to see if line/bar here and decide where to place the line
@@ -1700,11 +1706,19 @@
 
 
 					// Small lines at the bottom of the base grid line
-					ctx.beginPath();
-					ctx.moveTo(linePos,this.endPoint);
-					ctx.lineTo(linePos,this.endPoint + 5);
-					ctx.stroke();
-					ctx.closePath();
+					// ctx.beginPath();
+					// ctx.moveTo(linePos,this.endPoint);
+					// ctx.lineTo(linePos,this.endPoint + 5);
+					// ctx.stroke();
+					// ctx.closePath();
+					if(index % this.xLabelsSkipper === 0) {
+						//X axis ticks only painted for number of selected x values
+						ctx.beginPath();
+						ctx.moveTo(linePos,this.endPoint);
+						ctx.lineTo(linePos,this.endPoint + 5);
+						ctx.stroke();
+						ctx.closePath();
+					}
 
 					ctx.save();
 					ctx.translate(xPos,(isRotated) ? this.endPoint + 12 : this.endPoint + 8);
@@ -1712,7 +1726,9 @@
 					ctx.font = this.font;
 					ctx.textAlign = (isRotated) ? "right" : "center";
 					ctx.textBaseline = (isRotated) ? "middle" : "top";
-					ctx.fillText(label, 0, 0);
+					if(index % this.xLabelsSkipper === 0) {
+						ctx.fillText(label, 0, 0);
+					}
 					ctx.restore();
 				},this);
 
@@ -2208,6 +2224,7 @@
 			};
 
 			var scaleOptions = {
+				showXLabels: (this.options.showXLabels) ? this.options.showXLabels : true,
 				templateString : this.options.scaleLabel,
 				height : this.chart.height,
 				width : this.chart.width,
@@ -2679,6 +2696,7 @@
 			};
 
 			var scaleOptions = {
+				showXLabels: (this.options.showXLabels) ? this.options.showXLabels : true,
 				templateString : this.options.scaleLabel,
 				height : this.chart.height,
 				width : this.chart.width,
@@ -2954,6 +2972,7 @@
 				y : this.chart.height/2
 			});
 			this.scale = new Chart.RadialScale({
+				showXLabels: (this.options.showXLabels) ? this.options.showXLabels : true,
 				display: this.options.showScale,
 				fontStyle: this.options.scaleFontStyle,
 				fontSize: this.options.scaleFontSize,
@@ -3297,6 +3316,7 @@
 
 		buildScale : function(data){
 			this.scale = new Chart.RadialScale({
+				showXLabels: (this.options.showXLabels) ? this.options.showXLabels : true,
 				display: this.options.showScale,
 				fontStyle: this.options.scaleFontStyle,
 				fontSize: this.options.scaleFontSize,
